@@ -34,6 +34,10 @@ const authenticateUser = (req, res, next) => {
     */
 
     const authHeader = req.headers.authorization;
+    console.log("================================");
+   console.log("Authorization Header:");
+console.log(authHeader);
+console.log("================================");
 
     if (!authHeader) {
 
@@ -55,7 +59,7 @@ const authenticateUser = (req, res, next) => {
 
     --------------------------------------------------------------------------
     */
-
+    
     const parts = authHeader.split(" ");
 
     if (parts.length !== 2 || parts[0] !== "Bearer") {

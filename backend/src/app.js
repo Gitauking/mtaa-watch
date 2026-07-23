@@ -23,6 +23,9 @@ const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const morgan = require("morgan");
+const reportRoutes = require("./routes/reportRoutes");
+const mediaRoutes = require("./routes/mediaRoutes");
+const path = require("path");
 
 // Create the Express application
 const app = express();
@@ -45,11 +48,18 @@ app.use(morgan("dev"));
 // Allows Express to parse JSON request bodies
 app.use(express.json());
 
+app.use(
+    "/uploads",
+    express.static(path.join(__dirname, "../uploads"))
+);
+
 // Allows Express to parse URL-encoded form data
 app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/reports", reportRoutes);
+app.use("/api/reports", mediaRoutes);
 /**
  * ============================================================================
  * Health Check Route
