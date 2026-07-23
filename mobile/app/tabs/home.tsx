@@ -113,7 +113,7 @@ export default function HomeScreen() {
 
 <PrimaryButton
     title="Report an Incident"
-    onPress={() => router.push("/tabs/my-reports")}
+    onPress={() => router.push("/report-incident")}
 />
 
         </View>
@@ -218,7 +218,7 @@ export default function HomeScreen() {
 
 <FloatingActionButton
 
-    onPress={() => router.push("/tabs/my-reports")}
+    onPress={() => router.push("/report-incident")}
 
  />
 
