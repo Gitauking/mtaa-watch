@@ -34,7 +34,9 @@ const router = express.Router();
 const {
     getCategories,
     getCategory,
-    createCategory
+    createCategory,
+    updateCategory,
+    deleteCategory
 } = require("../controllers/categoryController");
 console.log("authenticateUser:", typeof authenticateUser);
 console.log("authorizeAdmin:", typeof authorizeAdmin);
@@ -63,8 +65,8 @@ router.get("/:id", getCategory);
 
  router.post("/", authenticateUser, authorizeAdmin, createCategory);
 
-// router.put("/:id", authenticateUser, authorizeAdmin, updateCategory);
+router.put("/:id", authenticateUser, authorizeAdmin, updateCategory);
 
-// router.delete("/:id", authenticateUser, authorizeAdmin, deleteCategory);
+router.delete("/:id", authenticateUser, authorizeAdmin, deleteCategory);
 
 module.exports = router;

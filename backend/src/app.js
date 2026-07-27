@@ -26,6 +26,8 @@ const morgan = require("morgan");
 const reportRoutes = require("./routes/reportRoutes");
 const mediaRoutes = require("./routes/mediaRoutes");
 const path = require("path");
+const adminReportRoutes = require("./routes/adminReportRoutes");
+const adminDashboardRoutes = require("./routes/adminDashboardRoutes");
 
 // Create the Express application
 const app = express();
@@ -53,6 +55,19 @@ app.use(
     express.static(path.join(__dirname, "../uploads"))
 );
 
+app.use((req, res, next) => {
+
+    console.log("================================");
+    console.log("Incoming Request");
+    console.log("Method:", req.method);
+    console.log("URL:", req.originalUrl);
+    console.log("================================");
+
+    next();
+
+});
+
+
 // Allows Express to parse URL-encoded form data
 app.use(express.urlencoded({ extended: true }));
 
@@ -60,6 +75,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/reports", mediaRoutes);
+app.use("/api/admin", adminReportRoutes);
+app.use("/api/admin", adminDashboardRoutes);
+
+
 /**
  * ============================================================================
  * Health Check Route

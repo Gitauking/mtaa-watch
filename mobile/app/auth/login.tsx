@@ -5,10 +5,8 @@
 |
 | Allows an existing user to sign into Mtaa Watch.
 |
-| Backend authentication will be added later.
-|
 */
-
+import apiClient from "../../src/services/apiClient";
 import React, { useState } from "react";
 
 import {
@@ -19,11 +17,15 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
 } from "react-native";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { router } from "expo-router";
+
+// Services
+import { login } from "../../src/services/authService";
 
 // Reusable Components
 import AppHeader from "../../src/components/header/AppHeader";
@@ -49,6 +51,8 @@ export default function LoginScreen() {
 
   const [password, setPassword] = useState("");
 
+  const [loading, setLoading] = useState(false);
+
   /*
   |--------------------------------------------------------------------------
   | Navigation
@@ -71,18 +75,59 @@ export default function LoginScreen() {
   |--------------------------------------------------------------------------
   | Login
   |--------------------------------------------------------------------------
-  |
-  | Later this will call the backend API.
-  |
   */
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
 
-    console.log("Email:", email);
+    try {
 
-    console.log("Password:", password);
+        console.log("================================");
+        console.log("LOGIN BUTTON PRESSED");
+        console.log("================================");
 
-  };
+        console.log("Calling authService.login()...");
+
+        const response = await login({
+
+            email: email.trim(),
+
+            password,
+
+        });
+
+        console.log("Returned from authService.login()");
+
+        console.log(response);
+
+        Alert.alert(
+
+            "Success",
+
+            response.message
+
+        );
+
+        router.replace("/tabs/home");
+
+    } catch (error: any) {
+
+        console.log("AUTH SERVICE ERROR");
+
+        console.log(error);
+
+        Alert.alert(
+
+            "Login Failed",
+
+            error.response?.data?.message ||
+
+            error.message
+
+        );
+
+    }
+
+};
 
   return (
 
@@ -111,11 +156,15 @@ export default function LoginScreen() {
           <View style={styles.topSection}>
 
             <Text style={styles.title}>
+
               Welcome Back
+
             </Text>
 
             <Text style={styles.subtitle}>
+
               Sign in to continue to Mtaa Watch.
+
             </Text>
 
           </View>
@@ -128,6 +177,11 @@ export default function LoginScreen() {
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="email"
+              textContentType="emailAddress"
+              editable={!loading}
             />
 
             <AppInput
@@ -136,19 +190,27 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="password"
+              textContentType="password"
+              editable={!loading}
             />
 
             <TouchableOpacity>
 
               <Text style={styles.forgotPassword}>
+
                 Forgot Password?
+
               </Text>
 
             </TouchableOpacity>
 
             <PrimaryButton
               title="Sign In"
-              onPress={() => router.replace("/tabs/home")}
+              loading={loading}
+              onPress={handleLogin}
             />
 
           </View>
@@ -156,7 +218,9 @@ export default function LoginScreen() {
           <View style={styles.footer}>
 
             <Text style={styles.footerText}>
+
               Don't have an account?
+
             </Text>
 
             <TouchableOpacity
@@ -164,7 +228,9 @@ export default function LoginScreen() {
             >
 
               <Text style={styles.link}>
+
                 Create Account
+
               </Text>
 
             </TouchableOpacity>

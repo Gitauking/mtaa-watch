@@ -21,7 +21,9 @@
 const {
     getAllCategories,
     getCategoryById,
-    createCategory: createCategoryService
+    createCategory: createCategoryService,
+    updateCategory: updateCategoryService,
+    deleteCategory: deleteCategoryService
 } = require("../services/categoryService");
 
 /**
@@ -278,6 +280,159 @@ const createCategory = async (req, res) => {
     }
 
 };
+
+/**
+ * ============================================================================
+ * Update Category
+ * ============================================================================
+ */
+
+const updateCategory = async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+        console.log("================================");
+        console.log("UPDATE CATEGORY");
+        console.log("Category ID:", id);
+        console.log("Body:", req.body);
+        console.log("================================");
+
+        const category = await updateCategoryService(
+
+            id,
+
+            req.body
+
+        );
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: "Category updated successfully.",
+
+            data: category
+
+        });
+
+    }
+    catch (error) {
+
+        if (error.message === "CATEGORY_NOT_FOUND") {
+
+            return res.status(404).json({
+
+                success: false,
+
+                message: "Category not found."
+
+            });
+
+        }
+
+        if (error.message === "CATEGORY_ALREADY_EXISTS") {
+
+            return res.status(409).json({
+
+                success: false,
+
+                message: "A category with that name already exists."
+
+            });
+
+        }
+
+        console.error("================================");
+        console.error("UPDATE CATEGORY ERROR");
+        console.error(error);
+        console.error("================================");
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: "Internal Server Error"
+
+        });
+
+    }
+
+};
+
+/**
+ * ============================================================================
+ * Delete Category
+ * ============================================================================
+ */
+
+const deleteCategory = async (req, res) => {
+
+    try {
+
+        const { id } = req.params;
+
+        console.log("================================");
+        console.log("DELETE CATEGORY");
+        console.log("Category ID:", id);
+        console.log("================================");
+
+        const category = await deleteCategoryService(id);
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: "Category deleted successfully.",
+
+            data: category
+
+        });
+
+    }
+    catch (error) {
+
+        if (error.message === "CATEGORY_NOT_FOUND") {
+
+            return res.status(404).json({
+
+                success: false,
+
+                message: "Category not found."
+
+            });
+
+        }
+
+        if (error.message === "CATEGORY_IN_USE") {
+
+            return res.status(409).json({
+
+                success: false,
+
+                message: "Category cannot be deleted because it is assigned to one or more reports."
+
+            });
+
+        }
+
+        console.error("================================");
+        console.error("DELETE CATEGORY ERROR");
+        console.error(error);
+        console.error("================================");
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: "Internal Server Error"
+
+        });
+
+    }
+
+};
 /*
 |--------------------------------------------------------------------------
 | Export Controllers
@@ -288,6 +443,8 @@ module.exports = {
 
     getCategories,
     getCategory,
-    createCategory
+    createCategory,
+    updateCategory,
+    deleteCategory
 
 };

@@ -77,7 +77,6 @@ const registerUser = async (userData) => {
         firstName,
         lastName,
         email,
-        phone,
         password
     } = userData;
 
@@ -88,17 +87,9 @@ const registerUser = async (userData) => {
     */
 
     if (await emailExists(email)) {
+
         throw new Error("Email address already exists.");
-    }
 
-    /*
-    --------------------------------------------------------------------------
-    Check duplicate phone
-    --------------------------------------------------------------------------
-    */
-
-    if (await phoneExists(phone)) {
-        throw new Error("Phone number already exists.");
     }
 
     /*
@@ -107,7 +98,10 @@ const registerUser = async (userData) => {
     --------------------------------------------------------------------------
     */
 
-    const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
+    const passwordHash = await bcrypt.hash(
+        password,
+        SALT_ROUNDS
+    );
 
     /*
     --------------------------------------------------------------------------
@@ -129,8 +123,8 @@ const registerUser = async (userData) => {
             $1,
             $2,
             $3,
-            $4,
-            $5
+            NULL,
+            $4
         )
         RETURNING
             id,
@@ -143,16 +137,24 @@ const registerUser = async (userData) => {
     `;
 
     const values = [
+
         firstName,
+
         lastName,
+
         email.toLowerCase(),
-        phone,
+
         passwordHash
+
     ];
 
-    const result = await pool.query(query, values);
+    const result = await pool.query(
+        query,
+        values
+    );
 
     return result.rows[0];
+
 };
 
 /**
@@ -176,7 +178,6 @@ const loginUser = async (loginData) => {
             first_name,
             last_name,
             email,
-            phone,
             password_hash,
             role
         FROM users

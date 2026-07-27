@@ -6,15 +6,19 @@
 | This is a reusable text input component.
 |
 | Instead of creating TextInput on every screen,
-| i create it once and reuse it everywhere.
+| we create it once and reuse it everywhere.
 |
-| It supports:
+| Features:
 | • Label
 | • Placeholder
-| • Password fields
+| • Password visibility toggle
 | • Error messages
 | • Disabled state
 | • Different keyboard types
+| • Auto-capitalization control
+| • Auto-correct control
+| • AutoComplete support
+| • TextContentType support
 |
 */
 
@@ -29,11 +33,8 @@ import {
   KeyboardTypeOptions,
 } from "react-native";
 
-// Expo icons (install if you haven't already)
-// npx expo install @expo/vector-icons
 import { Ionicons } from "@expo/vector-icons";
 
-// Import our design system
 import {
   Colors,
   Radius,
@@ -45,21 +46,10 @@ import {
 |--------------------------------------------------------------------------
 | Props
 |--------------------------------------------------------------------------
-|
-| These are the values this component expects.
-|
-| label            -> Text shown above the input
-| placeholder      -> Hint inside the input
-| value            -> Current value
-| onChangeText     -> Function called when typing
-| secureTextEntry  -> Password field
-| keyboardType     -> Email, Phone, Number etc.
-| error            -> Validation message
-| editable         -> Enable/Disable input
-|
 */
 
 type AppInputProps = {
+
   label: string;
 
   placeholder: string;
@@ -75,6 +65,15 @@ type AppInputProps = {
   error?: string;
 
   editable?: boolean;
+
+  autoCapitalize?: "none" | "sentences" | "words" | "characters";
+
+  autoCorrect?: boolean;
+
+  autoComplete?: React.ComponentProps<typeof TextInput>["autoComplete"];
+
+  textContentType?: React.ComponentProps<typeof TextInput>["textContentType"];
+
 };
 
 export default function AppInput({
@@ -95,22 +94,20 @@ export default function AppInput({
 
   editable = true,
 
+  autoCapitalize = "sentences",
+
+  autoCorrect = true,
+
+  autoComplete,
+
+  textContentType,
+
 }: AppInputProps) {
 
   /*
-  ------------------------------------------------------------------------
+  --------------------------------------------------------------------------
   Local State
-  ------------------------------------------------------------------------
-
-  i use this to show/hide passwords.
-
-  Initially:
-
-      Password is hidden.
-
-  When the eye icon is pressed:
-
-      Password becomes visible.
+  --------------------------------------------------------------------------
   */
 
   const [hidePassword, setHidePassword] = useState(secureTextEntry);
@@ -122,10 +119,12 @@ export default function AppInput({
       {/* Label */}
 
       <Text style={styles.label}>
+
         {label}
+
       </Text>
 
-      {/* Input Box */}
+      {/* Input */}
 
       <View style={styles.inputContainer}>
 
@@ -143,44 +142,40 @@ export default function AppInput({
 
           editable={editable}
 
-          /*
-          --------------------------------------------------------------
-          secureTextEntry
-
-          If this is a password field:
-
-              hidePassword = true
-
-          Otherwise:
-
-              false
-          */
-
           secureTextEntry={hidePassword}
+
+          autoCapitalize={autoCapitalize}
+
+          autoCorrect={autoCorrect}
+
+          autoComplete={autoComplete}
+
+          textContentType={textContentType}
+
+          placeholderTextColor={Colors.textSecondary}
+
         />
 
-        {/*
-        --------------------------------------------------------------
-        Only show the eye icon if this is a password field.
-        --------------------------------------------------------------
-        */}
+        {/* Password Visibility Toggle */}
 
         {secureTextEntry && (
 
           <TouchableOpacity
 
-            onPress={() =>
-              setHidePassword(!hidePassword)
-            }
+            onPress={() => setHidePassword(!hidePassword)}
 
           >
 
             <Ionicons
 
               name={
+
                 hidePassword
+
                   ? "eye-off-outline"
+
                   : "eye-outline"
+
               }
 
               size={22}
@@ -195,13 +190,7 @@ export default function AppInput({
 
       </View>
 
-      {/*
-      --------------------------------------------------------------
-      Error Message
-
-      Only display if "error" exists.
-      --------------------------------------------------------------
-      */}
+      {/* Error Message */}
 
       {error && (
 

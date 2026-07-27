@@ -53,12 +53,11 @@ const validateRegistration = (data) => {
     */
 
     const {
-        firstName,
-        lastName,
-        email,
-        phone,
-        password
-    } = data;
+    firstName,
+    lastName,
+    email,
+    password
+} = data;
 
     /*
     --------------------------------------------------------------------------
@@ -118,39 +117,6 @@ const validateRegistration = (data) => {
         if (!emailRegex.test(email.trim())) {
 
             errors.push("Please enter a valid email address.");
-
-        }
-
-    }
-
-    /*
-    --------------------------------------------------------------------------
-    Kenyan Phone Number
-    --------------------------------------------------------------------------
-    */
-
-    if (!phone || phone.trim() === "") {
-
-        errors.push("Phone number is required.");
-
-    } else {
-
-        /*
-        Accepts:
-
-        +254712345678
-
-        254712345678
-
-        0712345678
-        */
-
-        const phoneRegex =
-            /^(\+254|254|0)[17]\d{8}$/;
-
-        if (!phoneRegex.test(phone.trim())) {
-
-            errors.push("Please enter a valid Kenyan phone number.");
 
         }
 
