@@ -271,3 +271,53 @@ export const deleteReport = async (reportId) => {
     }
 
 };
+
+/**
+ * ============================================================================
+ * Get Dashboard Summary
+ * ============================================================================
+ */
+
+export const getDashboardSummary = async () => {
+
+    try {
+
+        console.log("================================");
+
+        console.log("Fetching Dashboard Summary...");
+
+        console.log("================================");
+
+        const response = await apiClient.get(
+
+            API_ENDPOINTS.DASHBOARD
+
+        );
+
+        console.log("Dashboard Loaded.");
+
+        console.log(response.data);
+
+        return response.data.data;
+
+    } catch (error) {
+
+        console.error("================================");
+
+        console.error("Dashboard Error:");
+
+        console.error(
+
+            error.response?.data?.message ||
+
+            error.message
+
+        );
+
+        console.error("================================");
+
+        throw error;
+
+    }
+
+};

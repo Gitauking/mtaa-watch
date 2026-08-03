@@ -3,228 +3,386 @@
 | Home Screen
 |--------------------------------------------------------------------------
 |
-| Dashboard shown after a successful login.
-|
-| NOTE:
-| This screen currently uses dummy data.
-| It will later fetch real reports from the Node.js backend.
-|
+| Personalized dashboard for the logged-in citizen.
+|--------------------------------------------------------------------------
 */
 
+import React, {
+
+    useState,
+
+    useCallback,
+
+} from "react";
+
 import {
-  View,
-  Text,
-  StyleSheet,
+
+    View,
+
+    Text,
+
+    StyleSheet,
+
+    RefreshControl,
+
 } from "react-native";
+
+import { useFocusEffect } from "@react-navigation/native";
 
 import { useRouter } from "expo-router";
 
 import ScreenLayout from "../../src/components/layout/ScreenLayout";
 import ScreenTitle from "../../src/components/layout/ScreenTitle";
-
 import AppHeader from "../../src/components/header/AppHeader";
 import PrimaryButton from "../../src/components/buttons/PrimaryButton";
-
 import StatCard from "../../src/components/dashboard/StatCard";
 import ReportCard from "../../src/components/dashboard/ReportCard";
 import FloatingActionButton from "../../src/components/dashboard/FloatingActionButton";
 
-
 import {
-  Colors,
-  Typography,
-  Spacing,
+
+    Colors,
+
+    Typography,
+
+    Spacing,
+
 } from "../../src/constants";
 
-export default function HomeScreen() {
-  const router = useRouter();
+import {
 
-  return (
+    getDashboardSummary,
+
+} from "../../src/services/reportService";
+
+import {
+
+    getCurrentUser,
+
+} from "../../src/services/authService";
+
+export default function HomeScreen() {
+    const router = useRouter();
 
     /*
-|--------------------------------------------------------------------------
-| Screen Layout
-|--------------------------------------------------------------------------
-|
-| ScreenLayout automatically provides:
-|
-| ✓ Safe Area handling
-| ✓ Consistent padding
-| ✓ ScrollView
-| ✓ Background colour
-|
-| This means we no longer need SafeAreaView
-| or ScrollView inside this screen.
-|
-*/
+    |--------------------------------------------------------------------------
+    | State
+    |--------------------------------------------------------------------------
+    */
 
-<ScreenLayout>
+    const [dashboard, setDashboard] = useState<any>(null);
 
-    {/*--------------------------------------------------------------
-        Header
-    --------------------------------------------------------------*/}
+    const [user, setUser] = useState<{ first_name: string } | null>(null);
 
-    <AppHeader
+    const [refreshing, setRefreshing] = useState(false);
 
-        title="Mtaa Watch"
+    /*
+    |--------------------------------------------------------------------------
+    | Greeting
+    |--------------------------------------------------------------------------
+    */
 
-        rightIcon="notifications-outline"
+    const getGreeting = () => {
 
-    />
+        const hour = new Date().getHours();
 
-    {/*--------------------------------------------------------------
-        Welcome Message
+        if (hour < 12) {
 
-        Instead of manually styling Text components,
-        i now use our reusable ScreenTitle component.
+            return "Good Morning";
 
-        This keeps every screen in the application
-        visually consistent.
-    --------------------------------------------------------------*/}
+        }
 
-    <ScreenTitle
+        if (hour < 17) {
 
-        title="Good Morning 👋"
+            return "Good Afternoon";
 
-        subtitle="Welcome back, Gitau."
+        }
 
-    />
+        return "Good Evening";
 
-        {/* Greeting */}
+    };
 
-        
+    /*
+    |--------------------------------------------------------------------------
+    | Load Dashboard
+    |--------------------------------------------------------------------------
+    */
 
-        {/* Report Button */}
+    const loadDashboard = async () => {
+
+        try {
+
+            setRefreshing(true);
+
+            const currentUser = await getCurrentUser();
+
+            setUser(currentUser);
+
+            const data = await getDashboardSummary();
+
+            setDashboard(data);
+
+        } catch (error) {
+
+            console.error(error);
+
+        } finally {
+
+            setRefreshing(false);
+
+        }
+
+    };
+
+    /*
+    |--------------------------------------------------------------------------
+    | Refresh whenever screen gains focus
+    |--------------------------------------------------------------------------
+    */
+
+    useFocusEffect(
+
+        useCallback(() => {
+
+            loadDashboard();
+
+        }, [])
+
+    );
+
+
+        return (
+
+    <ScreenLayout>
+
+        {/*--------------------------------------------------------------
+            Header
+        --------------------------------------------------------------*/}
+
+        <AppHeader
+
+            title="Mtaa Watch"
+
+            rightIcon="notifications-outline"
+
+        />
+
+        {/*--------------------------------------------------------------
+            Greeting
+        --------------------------------------------------------------*/}
+
+        <ScreenTitle
+
+            title={`${getGreeting()} 👋`}
+
+            subtitle={
+
+                user
+
+                    ? `Welcome back, ${user.first_name}.`
+
+                    : "Welcome back."
+
+            }
+
+        />
+
+        {/*--------------------------------------------------------------
+            Report Button
+        --------------------------------------------------------------*/}
 
         <View style={{ marginTop: Spacing.lg }}>
 
-          {/*
-|--------------------------------------------------------------------------
-| Report Incident Button
-|--------------------------------------------------------------------------
-|
-| When the user presses this button, Expo Router navigates
-| to the Report Incident screen.
-|
-| We use router.push() because we want the user to be able
-| to return to the Home screen afterwards.
-|--------------------------------------------------------------------------
-*/}
+            <PrimaryButton
 
-<PrimaryButton
-    title="Report an Incident"
-    onPress={() => router.push("/report-incident")}
-/>
+                title="Report an Incident"
+
+                onPress={() =>
+
+                    router.push("/report-incident")
+
+                }
+
+            />
 
         </View>
 
-        {/* Statistics */}
+        {/*--------------------------------------------------------------
+            Statistics
+        --------------------------------------------------------------*/}
 
         <Text style={styles.sectionTitle}>
-          Statistics
+
+            Your Activity
+
         </Text>
 
         <View style={styles.statsRow}>
 
-          <StatCard
+            <StatCard
 
-            value="24"
+                value={
 
-            title="Total Reports"
+                    dashboard
 
-          />
+                        ? dashboard.summary.reports_submitted
 
-          <StatCard
+                        : "0"
 
-            value="8"
+                }
 
-            title="Resolved"
+                title="Submitted"
 
-          />
+            />
+
+            <StatCard
+
+                value={
+
+                    dashboard
+
+                        ? dashboard.summary.pending
+
+                        : "0"
+
+                }
+
+                title="Pending"
+
+            />
 
         </View>
 
         <View style={styles.statsRow}>
 
-          <StatCard
+            <StatCard
 
-            value="5"
+                value={
 
-            title="Pending"
+                    dashboard
 
-          />
+                        ? dashboard.summary.in_progress
 
-          <StatCard
+                        : "0"
 
-            value="11"
+                }
 
-            title="In Progress"
+                title="In Progress"
 
-          />
+            />
+
+            <StatCard
+
+                value={
+
+                    dashboard
+
+                        ? dashboard.summary.resolved
+
+                        : "0"
+
+                }
+
+                title="Resolved"
+
+            />
 
         </View>
 
-        {/* Recent Reports */}
+        {/*--------------------------------------------------------------
+            Recent Reports
+        --------------------------------------------------------------*/}
 
         <Text style={styles.sectionTitle}>
-          Recent Reports
+
+            Recent Reports
+
         </Text>
 
-        <ReportCard
+        {
 
-          title="Pothole on Waiyaki Way"
+            dashboard?.recentReports?.length > 0 ? (
 
-          location="Westlands"
+                dashboard.recentReports.map((report: any) => (
 
-          date="Today"
+                    <ReportCard
 
-          status="pending"
+                        key={report.id}
+
+                        title={report.title}
+
+                        location={
+
+                            report.location_name ||
+
+                            "Unknown Location"
+
+                        }
+
+                        date={
+
+                            new Date(
+
+                                report.created_at
+
+                            ).toLocaleDateString()
+
+                        }
+
+                        status={
+
+                            report.status
+
+                                .toLowerCase()
+
+                                .replace(" ", "-")
+
+                        }
+
+                    />
+
+                ))
+
+            ) : (
+
+                <View style={styles.emptyCard}>
+
+                    <Text style={styles.emptyTitle}>
+
+                        No reports yet
+
+                    </Text>
+
+                    <Text style={styles.emptySubtitle}>
+
+                        Submit your first incident report to
+                        start helping your community.
+
+                    </Text>
+
+                </View>
+
+            )
+
+        }
+
+        {/*--------------------------------------------------------------
+            Floating Action Button
+        --------------------------------------------------------------*/}
+
+        <FloatingActionButton
+
+            onPress={() =>
+
+                router.push("/report-incident")
+
+            }
 
         />
 
-        <ReportCard
+    </ScreenLayout>
 
-          title="Broken Streetlight"
-
-          location="Kilimani"
-
-          date="Yesterday"
-
-          status="resolved"
-
-        />
-
-        <ReportCard
-
-          title="Illegal Dumping"
-
-          location="South B"
-
-          date="2 Days Ago"
-
-          status="in-progress"
-
-        />
-
-      {/*--------------------------------------------------------------
-    Floating Action Button
-
-    The FAB gives the user a quick way to report
-    an incident from anywhere on the dashboard.
-
-    We navigate using router.push() so that the
-    user can return to the Home screen afterwards.
---------------------------------------------------------------*/}
-
-<FloatingActionButton
-
-    onPress={() => router.push("/report-incident")}
-
- />
-
-</ScreenLayout>
-
-  );
+);
 
 }
 
@@ -277,5 +435,35 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
 
   },
+  emptyCard: {
 
+    backgroundColor: Colors.white,
+
+    padding: Spacing.xl,
+
+    borderRadius: 16,
+
+    alignItems: "center",
+
+},
+
+emptyTitle: {
+
+    fontSize: Typography.h3,
+
+    fontWeight: "700",
+
+    color: Colors.text,
+
+},
+
+emptySubtitle: {
+
+    marginTop: Spacing.sm,
+
+    textAlign: "center",
+
+    color: Colors.textSecondary,
+
+},
 });

@@ -117,7 +117,7 @@ tabBarItemStyle: {
 
     color={color}
 
-    size={size}v
+    size={size}
             />
 
           ),

@@ -29,7 +29,8 @@ const {
     getReportById,
     updateReport: updateReportService,
     deleteReport: deleteReportService,
-    getUserReports
+    getUserReports,
+    getDashboardSummary: getDashboardSummaryService
 } = require("../services/reportService");
 
 const {
@@ -529,7 +530,60 @@ const deleteReport = async (req, res) => {
     }
 
 };
+/**
+ * ============================================================================
+ * Get Dashboard Summary
+ * ============================================================================
+ *
+ * Returns dashboard statistics and recent reports for the logged-in user.
+ * ============================================================================
+ */
 
+/**
+ * ============================================================================
+ * Get Dashboard Summary
+ * ============================================================================
+ */
+
+const getDashboard = async (req, res) => {
+
+    try {
+
+        console.log("================================");
+        console.log("GET DASHBOARD");
+        console.log("User:", req.user.id);
+        console.log("================================");
+
+        const dashboard = await getDashboardSummaryService(
+            req.user.id
+        );
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: "Dashboard retrieved successfully.",
+
+            data: dashboard
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: error.message
+
+        });
+
+    }
+
+};
+    
 /*
 |--------------------------------------------------------------------------
 | Export Controllers
@@ -544,6 +598,7 @@ module.exports = {
     updateReport,
     deleteReport,
     getUserReports,
+    getDashboard,
     getMyReports
 
 };

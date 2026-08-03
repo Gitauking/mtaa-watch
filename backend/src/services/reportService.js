@@ -535,6 +535,99 @@ const deleteReport = async (reportId, userId) => {
     return;
 
 };
+
+/**
+ * ============================================================================
+ * Get Dashboard Summary
+ * ============================================================================
+ *
+ * Returns dashboard statistics and recent reports for the logged-in user.
+ * ============================================================================
+ */
+
+const getDashboardSummary = async (userId) => {
+
+    /*
+    --------------------------------------------------------------------------
+    Dashboard Statistics
+    --------------------------------------------------------------------------
+    */
+
+    const summaryQuery = `
+        SELECT
+
+            COUNT(*) AS reports_submitted,
+
+            COUNT(*) FILTER (
+                WHERE status = 'pending'
+            ) AS pending,
+
+            COUNT(*) FILTER (
+                WHERE status = 'in_progress'
+            ) AS in_progress,
+
+            COUNT(*) FILTER (
+                WHERE status = 'resolved'
+            ) AS resolved
+
+        FROM reports
+
+        WHERE user_id = $1;
+    `;
+
+    const summaryResult = await pool.query(
+
+        summaryQuery,
+
+        [userId]
+
+    );
+
+    /*
+    --------------------------------------------------------------------------
+    Recent Reports
+    --------------------------------------------------------------------------
+    */
+
+    const recentReportsQuery = `
+        SELECT
+
+            id,
+
+            title,
+
+            status,
+
+            location_name,
+
+            created_at
+
+        FROM reports
+
+        WHERE user_id = $1
+
+        ORDER BY created_at DESC
+
+        LIMIT 5;
+    `;
+
+    const recentReportsResult = await pool.query(
+
+        recentReportsQuery,
+
+        [userId]
+
+    );
+
+    return {
+
+        summary: summaryResult.rows[0],
+
+        recentReports: recentReportsResult.rows
+
+    };
+
+};
 /*
 |--------------------------------------------------------------------------
 | Export Services
@@ -547,5 +640,6 @@ module.exports = {
     getUserReports,
     getReportById,
     updateReport,
+    getDashboardSummary,
     deleteReport
 };

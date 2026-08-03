@@ -57,7 +57,7 @@ export const API_ENDPOINTS = {
 
    CHANGE_PASSWORD: "/api/auth/change-password",
    
-
+   DASHBOARD: "/api/reports/dashboard",
     /**
      * ------------------------------------------------------------------------
      * Admin

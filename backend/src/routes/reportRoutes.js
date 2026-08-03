@@ -38,7 +38,8 @@ const {
     getReport,
     updateReport,
     deleteReport,
-    getMyReports
+    getMyReports,
+    getDashboard
 } = require("../controllers/reportController");
 
 /**
@@ -71,8 +72,27 @@ router.post(
 router.get("/", authenticateUser, getReports);
 
 router.get("/my-reports", authenticateUser, getMyReports);
+router.get(
+
+    "/dashboard",
+
+    authenticateUser,
+
+    getDashboard
+
+);
 
 router.get("/:id", authenticateUser, getReport);
+
+/**
+ * ============================================================================
+ * Dashboard Summary
+ * ============================================================================
+ *
+ * Returns dashboard statistics and recent reports for the logged-in user.
+ * ============================================================================
+ */
+
 
 router.put("/:id", authenticateUser, updateReport);
 
