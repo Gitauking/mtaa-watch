@@ -28,7 +28,7 @@ const mediaRoutes = require("./routes/mediaRoutes");
 const path = require("path");
 const adminReportRoutes = require("./routes/adminReportRoutes");
 const adminDashboardRoutes = require("./routes/adminDashboardRoutes");
-
+const notificationRoutes = require("./routes/notificationRoutes");
 // Create the Express application
 const app = express();
 
@@ -77,7 +77,7 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/reports", mediaRoutes);
 app.use("/api/admin", adminReportRoutes);
 app.use("/api/admin", adminDashboardRoutes);
-
+app.use("/api/notifications", notificationRoutes);
 
 /**
  * ============================================================================

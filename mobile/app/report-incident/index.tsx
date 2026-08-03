@@ -38,7 +38,7 @@
 |
 */
 
-
+import { getCategories, createReport, uploadReportMedia } from "../../src/services/reportService";
 import {
     getCurrentLocation,
 } from "../../src/services/locationService";
@@ -89,28 +89,8 @@ import { Spacing } from "../../src/constants";
 |
 */
 
-const categories = [
 
-    "Road Damage",
-
-    "Broken Streetlight",
-
-    "Illegal Dumping",
-
-    "Garbage Collection",
-
-    "Blocked Drainage",
-
-    "Flooding",
-
-    "Water Leakage",
-
-    "Security Issue",
-
-    "Other",
-
-];
-
+// Categories state and loader are declared inside the component below.
 export default function ReportIncidentScreen() {
 
     /*
@@ -126,8 +106,23 @@ export default function ReportIncidentScreen() {
     |
     */
 
-    const [selectedCategory, setSelectedCategory] =
-        useState(categories[0]);
+    const [categories, setCategories] = useState<any[]>([]);
+
+    const [selectedCategory, setSelectedCategory] = useState<any | null>(null);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const cats = await getCategories();
+                setCategories(cats || []);
+                if (cats && cats.length) setSelectedCategory(cats[0]);
+            } catch (e) {
+                // ignore for now
+            }
+        };
+
+        load();
+    }, []);
 
     const [title, setTitle] = useState("");
 
@@ -143,7 +138,7 @@ export default function ReportIncidentScreen() {
     */
 
    const [imageUri, setImageUri] =
-    useState<string | undefined>();
+    useState<string | undefined | null>();
 
     /*
     |--------------------------------------------------------------------------
@@ -473,7 +468,7 @@ const handlePickImage = async () => {
 
 };
 
-const handleSubmit = () => {
+const handleSubmit = async () => {
 
     /*
     ------------------------------------------------------------------------
@@ -492,7 +487,7 @@ const handleSubmit = () => {
 
     const validation = validateReport({
 
-        category: selectedCategory,
+        category: selectedCategory !== null ? String(selectedCategory) : "",
 
         title,
 
@@ -506,7 +501,7 @@ const handleSubmit = () => {
 
     If validation fails, display ALL validation errors.
 
-    We join them together into one message.
+    i join them together into one message.
 
     Example
 
@@ -550,31 +545,65 @@ const handleSubmit = () => {
     ------------------------------------------------------------------------
     */
 
-    console.log({
+  try {
+    console.log("Selected Category:", selectedCategory);
+console.log("Category ID:", selectedCategory?.id);
+    const reportData = {
+        
+        categoryId: selectedCategory,
 
-        selectedCategory,
+        title: title.trim(),
 
-        title,
-
-        description,
-
-        location,
+        description: description.trim(),
 
         latitude,
 
         longitude,
 
-        imageUri,
+        locationName: location,
 
-    });
+    };
+
+    console.log("Submitting report:", reportData);
+
+    const response = await createReport(reportData);
+    console.log("Created report:", response);
+    if (imageUri) {
+
+        console.log("Uploading image...");
+
+        await uploadReportMedia(response.id, imageUri);
+
+        console.log("Image uploaded.");
+
+    }
+
+    console.log("Report created:", response);
 
     Alert.alert(
-
-        "Report Submitted",
-
-        "Your report has been recorded successfully."
-
+        "Success",
+        "Your incident report has been submitted successfully."
     );
+
+    // Clear the form
+    setSelectedCategory(categories[0] || null);
+    setTitle("");
+    setDescription("");
+    setImageUri(null);
+
+}
+catch (error: any) {
+
+    console.log("Create report error:", error);
+
+    Alert.alert(
+        "Submission Failed",
+        error?.response?.data?.message ||
+        error?.message ||
+        "Unable to submit your report."
+    );
+
+}
 
 };
 
@@ -664,7 +693,7 @@ const handleSubmit = () => {
 
             <PhotoPicker
 
-    imageUri={imageUri}
+    imageUri={imageUri ?? undefined}
 
     onPickImage={handlePickImage}
 

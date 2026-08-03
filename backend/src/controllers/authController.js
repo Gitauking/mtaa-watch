@@ -3,24 +3,16 @@
  * authController.js
  * ============================================================================
  *
- * PURPOSE
- * -------
- * Handles incoming authentication HTTP requests.
- *
- * RESPONSIBILITIES
- * ----------------
- * - Receive client requests
- * - Validate request data
- * - Call authentication services
- * - Return HTTP responses
- *
- * This controller should NEVER contain business logic.
+ * Handles authentication and account management requests.
  * ============================================================================
  */
 
 const {
     registerUser,
-    loginUser
+    loginUser,
+    getProfile: getProfileService,
+    updateProfile: updateProfileService,
+    changePassword: changePasswordService
 } = require("../services/authService");
 
 const {
@@ -30,19 +22,13 @@ const {
 
 /**
  * ============================================================================
- * Register User Controller
+ * Register User
  * ============================================================================
  */
 
-const register= async (req, res) => {
+const register = async (req, res) => {
 
     try {
-
-        /*
-        -----------------------------------------------------------------------
-        Validate Request
-        -----------------------------------------------------------------------
-        */
 
         const validation = validateRegistration(req.body);
 
@@ -60,19 +46,7 @@ const register= async (req, res) => {
 
         }
 
-        /*
-        -----------------------------------------------------------------------
-        Register User
-        -----------------------------------------------------------------------
-        */
-
         const user = await registerUser(req.body);
-
-        /*
-        -----------------------------------------------------------------------
-        Success Response
-        -----------------------------------------------------------------------
-        */
 
         return res.status(201).json({
 
@@ -86,15 +60,12 @@ const register= async (req, res) => {
 
     } catch (error) {
 
-        /*
-        -----------------------------------------------------------------------
-        Handle Expected Errors
-        -----------------------------------------------------------------------
-        */
-
         if (
+
             error.message === "Email address already exists." ||
+
             error.message === "Phone number already exists."
+
         ) {
 
             return res.status(409).json({
@@ -106,12 +77,6 @@ const register= async (req, res) => {
             });
 
         }
-
-        /*
-        -----------------------------------------------------------------------
-        Unexpected Error
-        -----------------------------------------------------------------------
-        */
 
         console.error("Registration Error:", error);
 
@@ -129,30 +94,17 @@ const register= async (req, res) => {
 
 /**
  * ============================================================================
- * Login Controller
- * ============================================================================
- *
- * Placeholder implementation.
- *  build the login functionality next.
- * ============================================================================
- */
-
-/**
- * ============================================================================
- * Login Controller
+ * Login User
  * ============================================================================
  */
 
 const login = async (req, res) => {
-    console.log("Login request received");
-    console.log(req.body);
-    try {
 
-        /*
-        -----------------------------------------------------------------------
-        Validate Request
-        -----------------------------------------------------------------------
-        */
+    console.log("Login request received");
+
+    console.log(req.body);
+
+    try {
 
         const validation = validateLogin(req.body);
 
@@ -170,19 +122,7 @@ const login = async (req, res) => {
 
         }
 
-        /*
-        -----------------------------------------------------------------------
-        Authenticate User
-        -----------------------------------------------------------------------
-        */
-
         const result = await loginUser(req.body);
-
-        /*
-        -----------------------------------------------------------------------
-        Success Response
-        -----------------------------------------------------------------------
-        */
 
         return res.status(200).json({
 
@@ -198,12 +138,6 @@ const login = async (req, res) => {
 
     } catch (error) {
 
-        /*
-        -----------------------------------------------------------------------
-        Invalid Credentials
-        -----------------------------------------------------------------------
-        */
-
         if (error.message === "Invalid email or password.") {
 
             return res.status(401).json({
@@ -215,12 +149,6 @@ const login = async (req, res) => {
             });
 
         }
-
-        /*
-        -----------------------------------------------------------------------
-        Unexpected Error
-        -----------------------------------------------------------------------
-        */
 
         console.error("Login Error:", error);
 
@@ -236,25 +164,169 @@ const login = async (req, res) => {
 
 };
 
+/**
+ * ============================================================================
+ * Get Logged-in User Profile
+ * ============================================================================
+ */
+
+const getProfile = async (req, res) => {
+
+    try {
+
+        console.log("================================");
+
+        console.log("GET PROFILE");
+
+        console.log("User:", req.user.id);
+
+        console.log("================================");
+
+        const profile = await getProfileService(req.user.id);
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: "Profile retrieved successfully.",
+
+            data: profile
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: error.message
+
+        });
+
+    }
+
+};
+
+/**
+ * ============================================================================
+ * Update Profile
+ * ============================================================================
+ */
+
+const updateProfile = async (req, res) => {
+
+    try {
+
+        console.log("================================");
+
+        console.log("UPDATE PROFILE");
+
+        console.log("User:", req.user.id);
+
+        console.log("================================");
+
+        const updatedUser = await updateProfileService(
+
+            req.user.id,
+
+            req.body
+
+        );
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: "Profile updated successfully.",
+
+            data: updatedUser
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+
+            success: false,
+
+            message: error.message
+
+        });
+
+    }
+
+};
+
+/**
+ * ============================================================================
+ * Change Password
+ * ============================================================================
+ */
+
+const changePassword = async (req, res) => {
+
+    try {
+
+        console.log("================================");
+
+        console.log("CHANGE PASSWORD");
+
+        console.log("User:", req.user.id);
+
+        console.log("================================");
+
+        const {
+
+            currentPassword,
+
+            newPassword
+
+        } = req.body;
+
+        await changePasswordService(
+
+            req.user.id,
+
+            currentPassword,
+
+            newPassword
+
+        );
+
+        return res.status(200).json({
+
+            success: true,
+
+            message: "Password changed successfully."
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(400).json({
+
+            success: false,
+
+            message: error.message
+
+        });
+
+    }
+
+};
+
 /*
 |--------------------------------------------------------------------------
 | Export Controllers
 |--------------------------------------------------------------------------
 */
-
-const getProfile = async (req, res) => {
-
-    return res.status(200).json({
-
-        success: true,
-
-        message: "Authenticated user.",
-
-        user: req.user
-
-    });
-}
-
 
 module.exports = {
 
@@ -262,11 +334,10 @@ module.exports = {
 
     login,
 
-    getProfile
+    getProfile,
+
+    updateProfile,
+
+    changePassword
 
 };
-/**
- * ============================================================================
- * Current User Profile
- * ============================================================================
- */

@@ -33,7 +33,11 @@ const {
 
     login,
 
-    getProfile
+    getProfile,
+
+    updateProfile,
+
+    changePassword
 
 } = require("../controllers/authController");
 /**
@@ -65,5 +69,37 @@ router.post("/login", login);
 router.get("/profile", authenticateUser, getProfile);
 
 // router.put("/profile", authenticateUser, updateProfile);
+
+/**
+ * ============================================================================
+ * Update Logged-in User Profile
+ * ============================================================================
+ */
+
+router.put(
+
+    "/profile",
+
+    authenticateUser,
+
+    updateProfile
+
+);
+
+/**
+ * ============================================================================
+ * Change Logged-in User Password
+ * ============================================================================
+ */
+
+router.put(
+
+    "/change-password",
+
+    authenticateUser,
+
+    changePassword
+
+);
 
 module.exports = router;

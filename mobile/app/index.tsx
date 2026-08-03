@@ -13,7 +13,7 @@
 | • Automatically navigate to the Welcome Screen
 |
 */
-
+import useAuth from "../src/hooks/useAuth";
 import React, { useEffect } from "react";
 
 import {
@@ -41,22 +41,40 @@ export default function SplashScreen() {
 
   Runs once when the screen loads.
 
-  We use it to automatically move to the Welcome Screen
+  i use it to automatically move to the Welcome Screen
   after two seconds.
   --------------------------------------------------------------------------
   */
+ const {
+    loading,
+    isAuthenticated
+} = useAuth();
 
   useEffect(() => {
 
+    if (loading) return;
+
     const timer = setTimeout(() => {
 
-      router.replace("/auth/welcome");
+        if (isAuthenticated) {
+
+            console.log("Existing session found.");
+
+            router.replace("/tabs/home");
+
+        } else {
+
+            console.log("No active session.");
+
+            router.replace("/auth/welcome");
+
+        }
 
     }, 2000);
 
     return () => clearTimeout(timer);
 
-  }, []);
+}, [loading, isAuthenticated]);
 
   return (
 

@@ -402,6 +402,48 @@ const updateReport = async (reportId, reportData, userId) => {
     return result.rows[0];
 
 };
+
+
+const getUserReports = async (userId) => {
+
+    console.log("================================");
+    console.log("FETCH USER REPORTS");
+    console.log("User:", userId);
+    console.log("================================");
+    const result = await pool.query(
+        `
+        SELECT
+            r.id,
+            r.title,
+            r.description,
+            r.status,
+            r.latitude,
+            r.longitude,
+            r.location_name,
+            r.created_at,
+            r.updated_at,
+
+            c.id AS category_id,
+            c.name AS category_name
+
+        FROM reports r
+
+        INNER JOIN categories c
+            ON r.category_id = c.id
+
+        WHERE r.user_id = $1
+
+        ORDER BY r.created_at DESC;
+        `,
+        [userId]
+    );
+
+    console.log("Reports Found:", result.rows.length);
+    console.log(result.rows);
+
+    return result.rows;
+
+};
 /**
  * ============================================================================
  * Delete Report (Soft Delete)
@@ -500,11 +542,10 @@ const deleteReport = async (reportId, userId) => {
 */
 
 module.exports = {
-
     createReport,
     getAllReports,
+    getUserReports,
     getReportById,
     updateReport,
     deleteReport
-
 };

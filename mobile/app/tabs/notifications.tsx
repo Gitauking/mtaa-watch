@@ -2,18 +2,32 @@
 |--------------------------------------------------------------------------
 | Notifications Screen
 |--------------------------------------------------------------------------
+|
+| Displays notifications for the logged-in user.
+| Notifications are fetched from the backend whenever this screen
+| comes into focus.
+|
 */
 
-import React from "react";
+import React, {
+  useState,
+  useCallback,
+} from "react";
+
 import {
   View,
   Text,
   StyleSheet,
+  ActivityIndicator,
 } from "react-native";
+
+import { useFocusEffect } from "@react-navigation/native";
 
 import AppHeader from "../../src/components/header/AppHeader";
 import ScreenLayout from "../../src/components/layout/ScreenLayout";
 import ScreenTitle from "../../src/components/layout/ScreenTitle";
+
+import { getNotifications } from "../../src/services/notificationService";
 
 import {
   Colors,
@@ -22,33 +36,70 @@ import {
   Radius,
 } from "../../src/constants";
 
-// Temporary notification data
-const notifications = [
-
-  {
-    id: 1,
-    title: "Report Submitted",
-    message: "Your pothole report has been received.",
-    time: "2 minutes ago",
-  },
-
-  {
-    id: 2,
-    title: "Report Assigned",
-    message: "Your streetlight report is under review.",
-    time: "Yesterday",
-  },
-
-  {
-    id: 3,
-    title: "Report Resolved",
-    message: "The illegal dumping report has been resolved.",
-    time: "2 days ago",
-  },
-
-];
-
 export default function NotificationsScreen() {
+
+  /*
+  |--------------------------------------------------------------------------
+  | State
+  |--------------------------------------------------------------------------
+  */
+
+  // type as any[] to avoid TS "never" inference for empty initial array
+  const [notifications, setNotifications] = useState<any[]>([]);
+
+  const [loading, setLoading] = useState(false);
+
+  /*
+  |--------------------------------------------------------------------------
+  | Load Notifications
+  |--------------------------------------------------------------------------
+  */
+
+  const loadNotifications = async () => {
+
+    try {
+
+      setLoading(true);
+
+      console.log("================================");
+      console.log("Loading Notifications...");
+      console.log("================================");
+
+      const data = await getNotifications();
+
+      console.log("Notifications Loaded:");
+      console.log(data);
+
+      setNotifications(data);
+
+    } catch (error) {
+
+      console.error("Failed to load notifications.");
+      console.error(error);
+
+    } finally {
+
+      setLoading(false);
+
+    }
+
+  };
+
+  /*
+  |--------------------------------------------------------------------------
+  | Refresh whenever screen is focused
+  |--------------------------------------------------------------------------
+  */
+
+  useFocusEffect(
+
+    useCallback(() => {
+
+      loadNotifications();
+
+    }, [])
+
+  );
 
   return (
 
@@ -63,28 +114,62 @@ export default function NotificationsScreen() {
         subtitle="Stay updated on your submitted reports."
       />
 
-      {notifications.map((item) => (
+      {
+        loading ? (
 
-        <View
-          key={item.id}
-          style={styles.card}
-        >
+          <ActivityIndicator
+            size="large"
+            color={Colors.primary}
+          />
 
-          <Text style={styles.title}>
-            🔔 {item.title}
-          </Text>
+        ) : notifications.length === 0 ? (
 
-          <Text style={styles.message}>
-            {item.message}
-          </Text>
+          <View style={styles.emptyContainer}>
 
-          <Text style={styles.time}>
-            {item.time}
-          </Text>
+            <Text style={styles.emptyText}>
 
-        </View>
+              You don't have any notifications yet.
 
-      ))}
+            </Text>
+
+          </View>
+
+        ) : (
+
+          notifications.map((item) => (
+
+            <View
+              key={item.id}
+              style={[
+                styles.card,
+                !item.is_read && styles.unreadCard,
+              ]}
+            >
+
+              <Text style={styles.title}>
+
+                🔔 {item.title}
+
+              </Text>
+
+              <Text style={styles.message}>
+
+                {item.message}
+
+              </Text>
+
+              <Text style={styles.time}>
+
+                {new Date(item.created_at).toLocaleString()}
+
+              </Text>
+
+            </View>
+
+          ))
+
+        )
+      }
 
     </ScreenLayout>
 
@@ -106,6 +191,20 @@ const styles = StyleSheet.create({
 
   },
 
+  /*
+  --------------------------------------------------------------------------
+  Highlight unread notifications
+  --------------------------------------------------------------------------
+  */
+
+  unreadCard: {
+
+    borderLeftWidth: 4,
+
+    borderLeftColor: Colors.primary,
+
+  },
+
   title: {
 
     fontWeight: "700",
@@ -122,6 +221,8 @@ const styles = StyleSheet.create({
 
     color: Colors.textSecondary,
 
+    lineHeight: 22,
+
   },
 
   time: {
@@ -131,6 +232,26 @@ const styles = StyleSheet.create({
     color: Colors.textSecondary,
 
     fontSize: Typography.small,
+
+  },
+
+  emptyContainer: {
+
+    alignItems: "center",
+
+    justifyContent: "center",
+
+    marginTop: 80,
+
+  },
+
+  emptyText: {
+
+    color: Colors.textSecondary,
+
+    fontSize: Typography.body,
+
+    textAlign: "center",
 
   },
 

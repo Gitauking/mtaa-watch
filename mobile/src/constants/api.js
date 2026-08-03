@@ -5,6 +5,9 @@
  */
 
 export const BASE_URL = process.env.EXPO_PUBLIC_API_URL;
+console.log("================================");
+console.log("BASE_URL =", BASE_URL);
+console.log("================================");
 /**
  * ============================================================================
  * API Endpoints
@@ -41,6 +44,9 @@ export const API_ENDPOINTS = {
 
     REPORTS: "/api/reports",
 
+
+     NOTIFICATIONS: "/api/notifications",
+
     /**
      * ------------------------------------------------------------------------
      * Media
@@ -48,6 +54,9 @@ export const API_ENDPOINTS = {
      */
 
     MEDIA: "/api/media",
+
+   CHANGE_PASSWORD: "/api/auth/change-password",
+   
 
     /**
      * ------------------------------------------------------------------------

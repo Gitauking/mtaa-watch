@@ -257,6 +257,172 @@ console.log("================================");
     };
 };
 
+/**
+ * ============================================================================
+ * Update User Profile
+ * ============================================================================
+ */
+
+const updateProfile = async (userId, profileData) => {
+
+    const {
+
+        firstName,
+
+        lastName,
+
+        email
+
+    } = profileData;
+
+    const query = `
+        UPDATE users
+        SET
+            first_name = $1,
+            last_name = $2,
+            email = $3,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $4
+        RETURNING
+            id,
+            first_name,
+            last_name,
+            email,
+            role,
+            created_at,
+            updated_at;
+    `;
+
+    const values = [
+
+        firstName,
+
+        lastName,
+
+        email.toLowerCase(),
+
+        userId
+
+    ];
+
+    const result = await pool.query(query, values);
+
+    return result.rows[0];
+
+};
+
+/**
+ * ============================================================================
+ * Change Password
+ * ============================================================================
+ */
+
+const changePassword = async (
+
+    userId,
+
+    currentPassword,
+
+    newPassword
+
+) => {
+
+    const result = await pool.query(
+
+        `
+        SELECT password_hash
+        FROM users
+        WHERE id = $1;
+        `,
+
+        [userId]
+
+    );
+
+    if (result.rows.length === 0) {
+
+        throw new Error("User not found.");
+
+    }
+
+    const user = result.rows[0];
+
+    const matches = await bcrypt.compare(
+
+        currentPassword,
+
+        user.password_hash
+
+    );
+
+    if (!matches) {
+
+        throw new Error("Current password is incorrect.");
+
+    }
+
+    const newHash = await bcrypt.hash(
+
+        newPassword,
+
+        SALT_ROUNDS
+
+    );
+
+    await pool.query(
+
+        `
+        UPDATE users
+        SET
+            password_hash = $1,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $2;
+        `,
+
+        [
+
+            newHash,
+
+            userId
+
+        ]
+
+    );
+
+};
+/**
+ * ============================================================================
+ * Get User Profile
+ * ============================================================================
+ */
+
+const getProfile = async (userId) => {
+
+    const query = `
+        SELECT
+            id,
+            first_name,
+            last_name,
+            email,
+            phone,
+            role,
+            created_at,
+            updated_at
+        FROM users
+        WHERE id = $1;
+    `;
+
+    const result = await pool.query(query, [userId]);
+
+    if (result.rows.length === 0) {
+
+        throw new Error("User not found.");
+
+    }
+
+    return result.rows[0];
+
+};
 /*
 |--------------------------------------------------------------------------
 | Exports
@@ -265,5 +431,8 @@ console.log("================================");
 
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    updateProfile,
+    changePassword,
+    getProfile
 };

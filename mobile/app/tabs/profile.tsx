@@ -3,26 +3,31 @@
 | Profile Screen
 |--------------------------------------------------------------------------
 */
-import { router } from "expo-router";
 
-import ProfileMenuItem from "../../src/components/profile/ProfileMenuItem";
-
-import { Alert } from "react-native";
-
-import React from "react";
+import React, { useState, useCallback } from "react";
 
 import {
   View,
   Text,
   StyleSheet,
-  TouchableOpacity,
+  Alert,
 } from "react-native";
 
+import { router } from "expo-router";
+
 import { Ionicons } from "@expo/vector-icons";
+
+import { useFocusEffect } from "@react-navigation/native";
 
 import AppHeader from "../../src/components/header/AppHeader";
 import ScreenLayout from "../../src/components/layout/ScreenLayout";
 import ScreenTitle from "../../src/components/layout/ScreenTitle";
+import ProfileMenuItem from "../../src/components/profile/ProfileMenuItem";
+
+import {
+  getCurrentUser,
+  logout as logoutUser,
+} from "../../src/services/authService";
 
 import {
   Colors,
@@ -31,65 +36,138 @@ import {
   Radius,
 } from "../../src/constants";
 
+type User = {
+  first_name: string;
+  last_name: string;
+  email: string;
+};
+
+/*
+|--------------------------------------------------------------------------
+| Navigation
+|--------------------------------------------------------------------------
+*/
+
 const goToSettings = () => {
 
-    router.push("/tabs/settings");
+  router.push("/settings");
 
 };
 
-const goToReports = () => {
+const goToEditProfile = () => {
 
-    router.push("/tabs/my-reports");
+  router.push("/profile/edit-profile");
 
 };
 
-const logout = () => {
+const goToHelp = () => {
 
-    Alert.alert(
-
-        "Logout",
-
-        "Are you sure you want to logout?",
-
-        [
-
-            {
-                text:"Cancel",
-                style:"cancel",
-            },
-
-            {
-                text:"Logout",
-
-                style:"destructive",
-
-                onPress:()=>router.replace("/auth/welcome"),
-
-            },
-
-        ]
-
-    );
+  router.push("/profile/help-support");
 
 };
 
 export default function ProfileScreen() {
 
+  const [user, setUser] = useState<User | null>(null);
+
+  /*
+  |--------------------------------------------------------------------------
+  | Load Cached User
+  |--------------------------------------------------------------------------
+  */
+
+  const loadUser = async () => {
+
+    try {
+
+      const currentUser = await getCurrentUser();
+
+      setUser(currentUser);
+
+    } catch (error) {
+
+      console.error("Failed to load user:", error);
+
+    }
+
+  };
+
+  /*
+  |--------------------------------------------------------------------------
+  | Refresh whenever screen is focused
+  |--------------------------------------------------------------------------
+  */
+
+  useFocusEffect(
+
+    useCallback(() => {
+
+      loadUser();
+
+    }, [])
+
+  );
+
+  /*
+  |--------------------------------------------------------------------------
+  | Logout
+  |--------------------------------------------------------------------------
+  */
+
+  const logout = () => {
+
+    Alert.alert(
+
+      "Logout",
+
+      "Are you sure you want to logout?",
+
+      [
+
+        {
+
+          text: "Cancel",
+
+          style: "cancel",
+
+        },
+
+        {
+
+          text: "Logout",
+
+          style: "destructive",
+
+          onPress: async () => {
+
+            await logoutUser();
+
+            router.replace("/auth/welcome");
+
+          },
+
+        },
+
+      ]
+
+    );
+
+  };
+
   return (
 
     <ScreenLayout>
 
-      <AppHeader
-        title="Mtaa Watch"
-      />
+      <AppHeader title="Mtaa Watch" />
 
       <ScreenTitle
-
         title="Profile"
-
         subtitle="Manage your account."
-
       />
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Profile Card */}
+      {/* ------------------------------------------------------------------ */}
 
       <View style={styles.profileCard}>
 
@@ -104,74 +182,73 @@ export default function ProfileScreen() {
         </View>
 
         <Text style={styles.name}>
-          Gitau Waiganjo
+
+          {user
+            ? `${user.first_name} ${user.last_name}`
+            : "Loading..."}
+
         </Text>
 
         <Text style={styles.email}>
-          gitau@email.com
+
+          {user?.email || ""}
+
         </Text>
 
       </View>
 
+      {/* ------------------------------------------------------------------ */}
+      {/* Menu Items */}
+      {/* ------------------------------------------------------------------ */}
+
       <ProfileMenuItem
 
-    icon="person-circle-outline"
+        icon="person-circle-outline"
 
-    title="Edit Profile"
+        title="Edit Profile"
 
-    onPress={() => {}}
+        onPress={goToEditProfile}
 
-/>
+      />
 
-<ProfileMenuItem
+      <ProfileMenuItem
 
-    icon="settings-outline"
+        icon="settings-outline"
 
-    title="Settings"
+        title="Settings"
 
-    onPress={goToSettings}
+        onPress={goToSettings}
 
-/>
+      />
 
-<ProfileMenuItem
+      <ProfileMenuItem
 
-    icon="document-text-outline"
+        icon="help-circle-outline"
 
-    title="My Reports"
+        title="Help & Support"
 
-    onPress={goToReports}
+        onPress={goToHelp}
 
-/>
+      />
 
-<ProfileMenuItem
+      <ProfileMenuItem
 
-    icon="help-circle-outline"
+        icon="log-out-outline"
 
-    title="Help & Support"
+        title="Logout"
 
-    onPress={() => {}}
+        danger
 
-/>
+        onPress={logout}
 
-<ProfileMenuItem
+      />
 
-    icon="log-out-outline"
+      <Text style={styles.version}>
 
-    title="Logout"
+        Mtaa Watch v1.0.0
 
-    danger
+      </Text>
 
-    onPress={logout}
-
-/>
-
-<Text
-    style={styles.version}
->
-
-    Mtaa Watch v1.0.0
-
-</Text>
     </ScreenLayout>
 
   );
@@ -180,90 +257,64 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
 
-  profileCard:{
+  profileCard: {
 
-    alignItems:"center",
+    alignItems: "center",
 
-    backgroundColor:Colors.white,
+    backgroundColor: Colors.white,
 
-    borderRadius:Radius.lg,
+    borderRadius: Radius.lg,
 
-    padding:Spacing.xl,
+    padding: Spacing.xl,
 
-    marginBottom:Spacing.xl,
-
-  },
-
-  avatar:{
-
-    width:90,
-
-    height:90,
-
-    borderRadius:45,
-
-    backgroundColor:"#EEF4FF",
-
-    justifyContent:"center",
-
-    alignItems:"center",
-
-    marginBottom:Spacing.md,
+    marginBottom: Spacing.xl,
 
   },
 
-  name:{
+  avatar: {
 
-    fontSize:Typography.h3,
+    width: 90,
 
-    fontWeight:"700",
+    height: 90,
 
-    color:Colors.text,
+    borderRadius: 45,
 
-  },
+    backgroundColor: "#EEF4FF",
 
-  email:{
+    justifyContent: "center",
 
-    marginTop:Spacing.sm,
+    alignItems: "center",
 
-    color:Colors.textSecondary,
-
-  },
-
-  item:{
-
-    flexDirection:"row",
-
-    alignItems:"center",
-
-    backgroundColor:Colors.white,
-
-    borderRadius:Radius.lg,
-
-    padding:Spacing.lg,
-
-    marginBottom:Spacing.md,
+    marginBottom: Spacing.md,
 
   },
 
-  itemText:{
+  name: {
 
-    marginLeft:Spacing.md,
+    fontSize: Typography.h3,
 
-    fontSize:Typography.body,
+    fontWeight: "700",
 
-    color:Colors.text,
+    color: Colors.text,
 
   },
 
- version:{
+  email: {
 
-    textAlign:"center",
+    marginTop: Spacing.sm,
 
-    marginTop:Spacing.lg,
+    color: Colors.textSecondary,
 
-    color:Colors.textSecondary,
+  },
 
-},
+  version: {
+
+    textAlign: "center",
+
+    marginTop: Spacing.lg,
+
+    color: Colors.textSecondary,
+
+  },
 
 });

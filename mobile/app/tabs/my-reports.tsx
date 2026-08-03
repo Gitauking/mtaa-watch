@@ -7,14 +7,15 @@
 | Currently uses dummy data.
 |
 */
-
-import React from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
+import React, { useEffect, useState } from "react";
 
 import AppHeader from "../../src/components/header/AppHeader";
 import ReportCard from "../../src/components/dashboard/ReportCard";
 import ScreenLayout from "../../src/components/layout/ScreenLayout";
 import ScreenTitle from "../../src/components/layout/ScreenTitle";
-
+import { getMyReports } from "../../src/services/reportService";
 /*
 |--------------------------------------------------------------------------
 | Dummy Data
@@ -24,43 +25,41 @@ import ScreenTitle from "../../src/components/layout/ScreenTitle";
 |
 */
 
-const reports = [
-
-  {
-    id: 1,
-    title: "Pothole on Waiyaki Way",
-    location: "Westlands",
-    date: "Today",
-    status: "pending" as const,
-  },
-
-  {
-    id: 2,
-    title: "Broken Streetlight",
-    location: "Kilimani",
-    date: "Yesterday",
-    status: "resolved" as const,
-  },
-
-  {
-    id: 3,
-    title: "Illegal Dumping",
-    location: "South B",
-    date: "2 Days Ago",
-    status: "in-progress" as const,
-  },
-
-  {
-    id: 4,
-    title: "Blocked Drainage",
-    location: "Kasarani",
-    date: "Last Week",
-    status: "pending" as const,
-  },
-
-];
 
 export default function MyReportsScreen() {
+const [reports, setReports] = useState([]);
+
+const [loading, setLoading] = useState(true);
+
+useFocusEffect(
+    useCallback(() => {
+        loadReports();
+    }, [])
+);
+
+const loadReports = async () => {
+
+    try {
+
+        console.log("Loading My Reports...");
+
+        const data = await getMyReports();
+
+        console.log("Reports:", data);
+
+        setReports(data);
+
+    } catch (error) {
+
+        console.error(error);
+
+    } finally {
+
+        setLoading(false);
+
+    }
+
+};
 
   return (
 
@@ -85,8 +84,19 @@ export default function MyReportsScreen() {
       {/* Report list */}
 
       {
+    !loading && reports.length === 0 ? (
 
-        reports.map((report) => (
+        <ScreenTitle
+
+            title=""
+
+            subtitle="You haven't submitted any reports yet."
+
+        />
+
+    ) : (
+
+        reports.map((report: any) => (
 
           <ReportCard
 
@@ -94,17 +104,17 @@ export default function MyReportsScreen() {
 
             title={report.title}
 
-            location={report.location}
+location={report.location_name}
 
-            date={report.date}
+date={new Date(report.created_at).toLocaleDateString()}
 
-            status={report.status}
-
+status={report.status}
           />
 
         ))
 
-      }
+    )
+}
 
     </ScreenLayout>
 

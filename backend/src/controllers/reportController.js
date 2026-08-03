@@ -19,11 +19,17 @@
  */
 
 const {
+    createNotification
+} = require("../services/notificationService");
+
+
+const {
     createReport: createReportService,
     getAllReports,
     getReportById,
     updateReport: updateReportService,
-    deleteReport: deleteReportService
+    deleteReport: deleteReportService,
+    getUserReports
 } = require("../services/reportService");
 
 const {
@@ -93,6 +99,19 @@ const createReport = async (req, res) => {
         */
 
         const report = await createReportService(req.body, userId);
+
+        await createNotification({
+
+           userId: req.user.id,
+
+           reportId: report.id,
+
+           title: "Report Submitted",
+
+           message:
+            "Your incident report has been received and is awaiting review."
+
+});
 
         /*
         ------------------------------------------------------------------------
@@ -413,6 +432,31 @@ const updateReport = async (req, res) => {
     }
 
 };
+
+const getMyReports = async (req, res) => {
+
+    try {
+
+        const reports = await getUserReports(req.user.id);
+
+        return res.status(200).json({
+            success: true,
+            message: "Reports retrieved successfully.",
+            data: reports
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Failed to retrieve reports."
+        });
+
+    }
+
+};
 /**
  * ============================================================================
  * Delete Report
@@ -498,6 +542,8 @@ module.exports = {
     getReports,
     getReport,
     updateReport,
-    deleteReport
+    deleteReport,
+    getUserReports,
+    getMyReports
 
 };

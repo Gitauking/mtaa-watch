@@ -51,13 +51,21 @@ import {
 |
 */
 
+type Category = {
+
+    id: number;
+
+    name: string;
+
+};
+
 type CategorySelectorProps = {
 
-    categories: string[];
+    categories: Category[];
 
-    selectedCategory: string;
+    selectedCategory: number | null;
 
-    onSelectCategory: (category: string) => void;
+    onSelectCategory: (categoryId: number) => void;
 
 };
 
@@ -135,13 +143,13 @@ export default function CategorySelector({
                         */
 
                         const isSelected =
-                            selectedCategory === category;
+                            selectedCategory === category.id;
 
                         return (
 
                             <TouchableOpacity
 
-                                key={category}
+                                key={category.id}
 
                                 style={[
 
@@ -153,7 +161,7 @@ export default function CategorySelector({
                                 ]}
 
                                 onPress={() =>
-                                    onSelectCategory(category)
+                                    onSelectCategory(category.id)
                                 }
 
                             >
@@ -171,7 +179,7 @@ export default function CategorySelector({
 
                                 >
 
-                                    {category}
+                                    {category.name}
 
                                 </Text>
 

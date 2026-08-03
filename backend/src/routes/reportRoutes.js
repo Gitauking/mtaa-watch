@@ -37,7 +37,8 @@ const {
     getReports,
     getReport,
     updateReport,
-    deleteReport
+    deleteReport,
+    getMyReports
 } = require("../controllers/reportController");
 
 /**
@@ -68,6 +69,8 @@ router.post(
  */
 
 router.get("/", authenticateUser, getReports);
+
+router.get("/my-reports", authenticateUser, getMyReports);
 
 router.get("/:id", authenticateUser, getReport);
 
